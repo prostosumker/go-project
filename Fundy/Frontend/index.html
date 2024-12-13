@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Fundy</title>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Advent+Pro:ital,wght@0,100..900;1,100..900&family=Jost:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+			rel="stylesheet"
+		/>
+
+		<link
+			rel="icon"
+			href="/Users/Admin/Desktop/Fundy/Frontend/media/Logo.ico"
+			type="image/x-icon"
+		/>
+
+		<style>
+			.ubuntu-medium {
+				font-family: 'Ubuntu', sans-serif;
+				font-weight: 500;
+				font-style: normal;
+			}
+			body {
+				font-family: 'Ubuntu';
+				margin: 0;
+				padding: 0;
+				background-color: #f5f5f5;
+			}
+
+			.header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 20px;
+				background-color: #fff;
+				border-bottom: 1px solid #ddd;
+			}
+
+			.header .logo {
+				font-size: 24px;
+				font-weight: bold;
+				color: #000;
+				font-family: 'Ubuntu';
+			}
+
+			.header .menu {
+				display: flex;
+				gap: 20px;
+			}
+
+			.header .menu a {
+				text-decoration: none;
+				color: #ffffff;
+				font-weight: 500;
+				background-color: #1f1f1f;
+				padding-top: 10px;
+				padding-bottom: 10px;
+				padding-left: 30px;
+				padding-right: 30px;
+				border-radius: 20px;
+				font-family: 'Ubuntu';
+			}
+
+			.container {
+				display: grid;
+				grid-template-columns: 1fr 2fr 1fr;
+				gap: 20px;
+				padding: 20px;
+			}
+
+			.balance-card {
+				grid-column: 2;
+				background-color: #fff;
+				border-radius: 8px;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+				padding: 20px;
+				text-align: center;
+			}
+
+			.balance-card h2 {
+				font-size: 18px;
+				color: #555;
+			}
+
+			.balance-card .balance {
+				font-size: 36px;
+				font-weight: bold;
+				margin: 10px 0;
+				color: #000;
+			}
+
+			.balance-card .currency {
+				display: flex;
+				justify-content: flex-end;
+				font-size: 14px;
+				color: #777;
+			}
+
+			.report-section {
+				grid-column: 2;
+				background-color: #fff;
+				border-radius: 8px;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+				padding: 20px;
+				margin-top: 20px;
+			}
+
+			.report-section .tabs {
+				display: flex;
+				gap: 10px;
+			}
+
+			.report-section .tabs button {
+				padding: 10px 20px;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				background-color: #000;
+				color: #fff;
+				font-weight: bold;
+			}
+
+			.report-section .tabs button.inactive {
+				background-color: #ddd;
+				color: #555;
+				border-radius: 20px;
+			}
+
+			.report-section .tabs button.inactive:active {
+				background-color: #000000;
+				color: #ffffff;
+				border-radius: 20px;
+			}
+
+			.report-section .tabs button.inactive:focus {
+				background-color: #000000;
+				color: #ffffff;
+				border-radius: 20px;
+			}
+
+			.report-section .chart {
+				margin-top: 20px;
+				text-align: center;
+			}
+
+			.buttons {
+				grid-column: 2;
+				display: flex;
+				justify-content: space-between;
+				margin-top: 20px;
+			}
+
+			.buttons button {
+				padding: 15px 30px;
+				border: none;
+				border-radius: 5px;
+				font-size: 16px;
+				font-weight: bold;
+				cursor: pointer;
+			}
+
+			.buttons .expense {
+				background: linear-gradient(90deg, #800000, #ff0000);
+				color: #fff;
+				padding-left: 100px;
+				padding-right: 100px;
+				padding-top: 50px;
+				padding-bottom: 50px;
+			}
+
+			.buttons .income {
+				background: linear-gradient(90deg, #004d40, #00e676);
+				color: #fff;
+				padding-left: 100px;
+				padding-right: 100px;
+				padding-top: 50px;
+				padding-bottom: 50px;
+			}
+			/*Модальное окно расходов */
+			.modalExp {
+				display: none; /* Скрыто по умолчанию */
+				position: fixed; /* Оставаться на месте */
+				z-index: 1; /* Сидеть на вершине */
+				left: 0;
+				top: 0;
+				width: 100%; /* Полная ширина */
+				height: 100%; /* Полная высота */
+				overflow: auto; /* Включите прокрутку, если это необходимо */
+				background-color: rgb(0, 0, 0); /* Цвет запасной вариант */
+				background-color: rgba(0, 0, 0, 0.295); /* Чёрный с непрозрачностью */
+			}
+			/* Модальное содержание/коробка */
+			.modal-contentExp {
+				background-color: #fefefe;
+				margin: 15% auto; /* 15% сверху и по центру */
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%; /* Может быть больше или меньше, в зависимости от размера экрана */
+			}
+			/* Кнопка закрытия */
+			.closeExp {
+				color: #aaa;
+				float: right;
+				font-size: 28px;
+				font-weight: bold;
+				background-color: #88888800;
+				border-color: white;
+			}
+			.closeExp:hover,
+			.closeExp:focus {
+				color: black;
+				text-decoration: none;
+				cursor: pointer;
+			}
+
+			/*Модальное окно доходов*/
+			.modalInc {
+				display: none; /* Скрыто по умолчанию */
+				position: fixed; /* Оставаться на месте */
+				z-index: 1; /* Сидеть на вершине */
+				left: 0;
+				top: 0;
+				width: 100%; /* Полная ширина */
+				height: 100%; /* Полная высота */
+				overflow: auto; /* Включите прокрутку, если это необходимо */
+				background-color: rgb(0, 0, 0); /* Цвет запасной вариант */
+				background-color: rgba(0, 0, 0, 0.295); /* Чёрный с непрозрачностью */
+			}
+			/* Модальное содержание/коробка */
+			.modal-contentInc {
+				background-color: #fefefe;
+				margin: 15% auto; /* 15% сверху и по центру */
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%; /* Может быть больше или меньше, в зависимости от размера экрана */
+			}
+			/* Кнопка закрытия */
+			.closeInc {
+				color: #aaa;
+				float: right;
+				font-size: 28px;
+				font-weight: bold;
+				background-color: #88888800;
+				border-color: white;
+			}
+			.closeInc:hover,
+			.closeInc:focus {
+				color: black;
+				text-decoration: none;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<header class="header">
+			<div class="logo">FUNDY</div>
+			<nav class="menu">
+				<a href="#">Home</a>
+				<a href="#">Reports</a>
+				<a href="#">Expenses</a>
+			</nav>
+			<div class="profile">👤</div>
+		</header>
+
+		<div id="myModalExp" class="modalExp">
+			<!-- Модальное содержание -->
+			<div class="modal-contentExp">
+				<button class="closeExp" id="closeExp">&times;</button>
+				<p>Расход..</p>
+			</div>
+		</div>
+
+		<div id="myModalInc" class="modalInc">
+			<!-- Модальное содержание -->
+			<div class="modal-contentInc">
+				<button class="closeInc" id="closeInc">&times;</button>
+				<p>Доход..</p>
+			</div>
+		</div>
+
+		<div class="container">
+			<div class="balance-card">
+				<h2>Общий баланс</h2>
+				<div class="balance">₽10,000.20</div>
+				<div class="currency">RUB</div>
+			</div>
+
+			<div class="report-section">
+				<h3>Отчёт за Декабрь</h3>
+				<div class="tabs">
+					<button class="inactive">Траты</button>
+					<button class="inactive">Пополнения</button>
+				</div>
+				<div class="chart">₽1250</div>
+			</div>
+			<div class="buttons">
+				<button id="myBtnExp" class="expense">+ Трата</button>
+				<button id="myBtnInc" class="income">+ Доход</button>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script>
+	// Получить модальный
+	var modalExp = document.getElementById('myModalExp')
+	// Получить кнопку, которая открывает модальный
+	var btnExp = document.getElementById('myBtnExp')
+	// Получить элемент <span>, который закрывает модальный
+	var spanExp = document.getElementById('closeExp')
+	// Когда пользователь нажимает на кнопку, открыть модальный
+	btnExp.onclick = function () {
+		modalExp.style.display = 'block'
+	}
+	// Когда пользователь нажимает на <span> (x), закрыть модальное окно
+	spanExp.onclick = function () {
+		modalExp.style.display = 'none'
+	}
+	// Когда пользователь щёлкает в любом месте за пределами модального, закрыть его
+
+	var modalInc = document.getElementById('myModalInc')
+	// Получить кнопку, которая открывает модальный
+	var btnInc = document.getElementById('myBtnInc')
+	// Получить элемент <span>, который закрывает модальный
+	var spanInc = document.getElementById('closeInc')
+	// Когда пользователь нажимает на кнопку, открыть модальный
+	btnInc.onclick = function () {
+		modalInc.style.display = 'block'
+	}
+	// Когда пользователь нажимает на <span> (x), закрыть модальное окно
+	spanInc.onclick = function () {
+		modalInc.style.display = 'none'
+	}
+	window.onclick = function (event) {
+		if ((event.target == modalExp) | (event.target == modalInc)) {
+			modalExp.style.display = 'none'
+			modalInc.style.display = 'none'
+		}
+	}
+</script>
