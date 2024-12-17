@@ -470,12 +470,12 @@
 		<div class="container">
 			<div class="balance-card">
 				<h2>Общий баланс</h2>
-				<div class="balance">₽10,000.20</div>
+				<div class="balance">₽0.0</div>
 				<div class="currency">RUB</div>
 			</div>
 
 			<div class="report-section">
-				<h3>Отчёт за Декабрь</h3>
+				<h3 id="reportMonth">Отчёт за</h3>
 				<div class="tabs">
 					<button
 						style="background-color: #000000; color: #ffffff"
@@ -502,6 +502,62 @@
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+	function getToDaysMonth() {
+		let currentDate = new Date()
+		const monthName = currentDate.toLocaleString('default', { month: 'long' })
+
+		reportMonthTextEl = document.getElementById('reportMonth')
+		switch (monthName) {
+			case 'January':
+				reportMonthTextEl.textContent = 'Отчёт за Январь'
+				break
+			case 'February':
+				reportMonthTextEl.textContent = 'Отчёт за Февраль'
+				break
+			case 'March':
+				reportMonthTextEl.textContent = 'Отчёт за Март'
+				break
+			case 'April':
+				reportMonthTextEl.textContent = 'Отчёт за Апрель'
+				break
+			case 'May':
+				reportMonthTextEl.textContent = 'Отчёт за Май'
+				break
+			case 'June':
+				reportMonthTextEl.textContent = 'Отчёт за Июнь'
+				break
+			case 'July':
+				reportMonthTextEl.textContent = 'Отчёт за Июль'
+				break
+			case 'August':
+				reportMonthTextEl.textContent = 'Отчёт за Август'
+				break
+			case 'September':
+				reportMonthTextEl.textContent = 'Отчёт за Сентябрь'
+				break
+			case 'October':
+				reportMonthTextEl.textContent = 'Отчёт за Октябрь'
+				break
+			case 'November':
+				reportMonthTextEl.textContent = 'Отчёт за Ноябрь'
+				break
+			case 'December':
+				reportMonthTextEl.textContent = 'Отчёт за Декабрь'
+				break
+			default:
+				reportMonthTextEl.textContent = 'Отчёт за месяц'
+				break
+		}
+	}
+
+	//Вычисление суммы значений диаграммы
+	function getChartDataSum(chart) {
+		return chart.data.datasets[0].data.reduce((acc, value) => acc + value, 0)
+	}
+
+	//Проверка текущего месяца
+	getToDaysMonth()
+
 	// Кнопки управления диграммами
 	var btnDiagrExp = document.getElementById('btnDiagrExp')
 	var btnDiagrInc = document.getElementById('btnDiagrInc')
