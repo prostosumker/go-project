@@ -15,7 +15,10 @@
 		<link rel="icon" href="../Frontend/media/Logo.ico" type="image/x-icon" />
 
 		<style>
-			/* Общие стили модального окна */
+			#reportChart {
+				width: 270px;
+				height: 270px;
+			}
 			.modal {
 				display: flex;
 				justify-content: center;
@@ -164,7 +167,7 @@
 			}
 
 			.report-section .tabs {
-				display: flex;
+				display: flexbox;
 				gap: 10px;
 			}
 
@@ -314,6 +317,9 @@
 				color: black;
 				text-decoration: none;
 				cursor: pointer;
+			}
+			.container {
+				font-family: 'Arial';
 			}
 		</style>
 	</head>
@@ -474,8 +480,10 @@
 				<div class="tabs">
 					<button class="inactive">Траты</button>
 					<button class="inactive">Пополнения</button>
+					<div width="200" height="200" class="chart">
+						<canvas id="reportChart"></canvas>
+					</div>
 				</div>
-				<div class="chart">₽1250</div>
 			</div>
 			<div class="buttons">
 				<button id="myBtnExp" class="expense">+ Трата</button>
@@ -484,8 +492,52 @@
 		</div>
 	</body>
 </html>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+	// Работа с диаграммами
+	const ctx = document.getElementById('reportChart').getContext('2d')
+
+	const reportChart = new Chart(ctx, {
+		type: 'doughnut',
+		data: {
+			labels: ['Категория 1', 'Категория 2', 'Категория 3'],
+			datasets: [
+				{
+					label: 'Расходы',
+					data: [1250, 1000, 750],
+					backgroundColor: ['#F42A60', '#C033F3', '#33FF70'],
+					borderWidth: 10,
+					hoverOffset: 10,
+				},
+			],
+		},
+		options: {
+			responsive: true,
+			plugins: {
+				legend: {
+					display: true,
+				},
+				tooltip: {
+					enabled: true,
+					callbacks: {
+						label: function (context) {
+							const value = context.raw
+							return `₽${value}`
+						},
+					},
+					displayColors: false,
+				},
+			},
+			elements: {
+				arc: {
+					borderRadius: 100,
+				},
+			},
+			cutout: '65%',
+			maintainAspectRatio: false,
+		},
+	})
+
 	//Рубли в модальном окне расходов
 	const amountInput = document.getElementById('amountInput')
 
