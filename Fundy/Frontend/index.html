@@ -183,7 +183,6 @@
 
 			.report-section .tabs button.inactive {
 				background-color: #ddd;
-				color: #555;
 				border-radius: 20px;
 			}
 
@@ -478,10 +477,19 @@
 			<div class="report-section">
 				<h3>Отчёт за Декабрь</h3>
 				<div class="tabs">
-					<button class="inactive">Траты</button>
-					<button class="inactive">Пополнения</button>
+					<button
+						style="background-color: #000000; color: #ffffff"
+						id="btnDiagrExp"
+						class="inactive"
+					>
+						Траты
+					</button>
+					<button style="color: #555" id="btnDiagrInc" class="inactive">
+						Пополнения
+					</button>
 					<div width="200" height="200" class="chart">
-						<canvas id="reportChart"></canvas>
+						<canvas style="display: block" id="reportChartExp"></canvas>
+						<canvas style="display: none" id="reportChartInc"></canvas>
 					</div>
 				</div>
 			</div>
@@ -494,49 +502,133 @@
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-	// Работа с диаграммами
-	const ctx = document.getElementById('reportChart').getContext('2d')
+	// Кнопки управления диграммами
+	var btnDiagrExp = document.getElementById('btnDiagrExp')
+	var btnDiagrInc = document.getElementById('btnDiagrInc')
 
-	const reportChart = new Chart(ctx, {
-		type: 'doughnut',
-		data: {
-			labels: ['Категория 1', 'Категория 2', 'Категория 3'],
-			datasets: [
-				{
-					label: 'Расходы',
-					data: [1250, 1000, 750],
-					backgroundColor: ['#F42A60', '#C033F3', '#33FF70'],
-					borderWidth: 10,
-					hoverOffset: 10,
-				},
-			],
+	var canvasInc = document.getElementById('reportChartInc')
+	var canvasExp = document.getElementById('reportChartExp')
+
+	let reportChartExp // Переменная для диаграммы расходов
+	let reportChartInc // Переменная для диаграммы доходов
+
+	// Диаграмма
+	function createChart(context, type, data, options) {
+		return new Chart(context, {
+			type: type,
+			data: data,
+			options: options,
+		})
+	}
+
+	// Данные и опции для диаграмм
+	const expData = {
+		labels: ['Категория 11', 'Категория 22', 'Категория 33', 'Категория 44'],
+		datasets: [
+			{
+				label: 'Расходы',
+				data: [1250, 1000, 750, 1100],
+				backgroundColor: ['#F42A60', '#C033F3', '#33FF70', '#FFBB33'],
+				borderWidth: 10,
+				hoverOffset: 10,
+			},
+		],
+	}
+
+	const incData = {
+		labels: ['Категория 1', 'Категория 2', 'Категория 3'],
+		datasets: [
+			{
+				label: 'Доходы',
+				data: [1250, 1000, 750],
+				backgroundColor: ['#33FF70', '#33A0FF', '#FFBB33'],
+				borderWidth: 10,
+				hoverOffset: 10,
+			},
+		],
+	}
+
+	const chartOptions = {
+		responsive: true,
+		animation: {
+			duration: 1000,
 		},
-		options: {
-			responsive: true,
-			plugins: {
-				legend: {
-					display: true,
-				},
-				tooltip: {
-					enabled: true,
-					callbacks: {
-						label: function (context) {
-							const value = context.raw
-							return `₽${value}`
-						},
+		plugins: {
+			legend: {
+				display: true,
+			},
+			tooltip: {
+				enabled: true,
+				callbacks: {
+					label: function (context) {
+						const value = context.raw
+						return `₽${value}`
 					},
-					displayColors: false,
 				},
+				displayColors: false,
 			},
-			elements: {
-				arc: {
-					borderRadius: 100,
-				},
-			},
-			cutout: '65%',
-			maintainAspectRatio: false,
 		},
-	})
+		elements: {
+			arc: {
+				borderRadius: 100,
+			},
+		},
+		cutout: '60%',
+		maintainAspectRatio: false,
+	}
+
+	// Изначальное состояние
+	canvasInc.style.display = 'none'
+	reportChartExp = createChart(
+		canvasExp.getContext('2d'),
+		'doughnut',
+		expData,
+		chartOptions
+	)
+
+	// Переключение на диаграмму расходов
+	btnDiagrExp.onclick = function () {
+		if (reportChartInc) {
+			reportChartInc.destroy()
+		}
+		canvasExp.style.display = 'block'
+		canvasInc.style.display = 'none'
+
+		btnDiagrExp.style.color = '#ffffff'
+		btnDiagrInc.style.color = '#555'
+
+		btnDiagrExp.style.background = '#000000'
+		btnDiagrInc.style.background = '#ddd'
+
+		reportChartExp = createChart(
+			canvasExp.getContext('2d'),
+			'doughnut',
+			expData,
+			chartOptions
+		)
+	}
+
+	// Переключение на диаграмму доходов
+	btnDiagrInc.onclick = function () {
+		if (reportChartExp) {
+			reportChartExp.destroy()
+		}
+		canvasExp.style.display = 'none'
+		canvasInc.style.display = 'block'
+
+		btnDiagrInc.style.color = '#ffffff'
+		btnDiagrExp.style.color = '#555'
+
+		btnDiagrInc.style.background = '#000000'
+		btnDiagrExp.style.background = '#ddd'
+
+		reportChartInc = createChart(
+			canvasInc.getContext('2d'),
+			'doughnut',
+			incData,
+			chartOptions
+		)
+	}
 
 	//Рубли в модальном окне расходов
 	const amountInput = document.getElementById('amountInput')
