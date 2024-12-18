@@ -152,11 +152,62 @@
 				<label for="password">Пароль</label>
 				<input type="password" id="password" placeholder="••••••••" />
 
-				<button type="button" onclick="checkLogin()">Вход</button>
+				<button type="submit">Вход</button>
 			</form>
 		</div>
-
 		<script>
+			// Функция для проверки авторизации
+			async function checkAuth() {
+            try {
+                const response = await fetch('/auth', {
+                  method: 'GET',
+                  credentials: 'include', // Обязательно указываем для отправки cookies
+                });
+
+                if (response.ok) {
+                  const data = await response.json();
+                  console.log('User is authenticated:', data.username);
+                  // Логика для авторизованного пользователя
+                  window.location.href = '/static/welcome.html';
+                  document.getElementById('status').innerText = `Hello, ${data.username}!`;
+                } else {
+                  console.log('User is not authenticated');
+                  // Логика для неавторизованного пользователя
+                  document.getElementById('status').innerText = 'Please log in.';
+                }
+              } catch (err) {
+                console.error('Error during authentication check:', err);
+              }
+            }
+
+			// Проверка авторизации при загрузке страницы
+			document.addEventListener('DOMContentLoaded', checkAuth);
+			document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+			console.log("Форма отправлена!");
+            const username = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const response = await fetch("http://localhost:8080/generate-token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username }, { password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = '/index.html';
+            } else {
+                
+            }
+        });
+        document.getElementById("authForm").addEventListener("Sign_Up", async (event) => {
+            event.preventDefault();
+            window.location.href = '/sign_up.html';
+            
+            }
+        );
 			const CORRECT_EMAIL = 'email@gmail.com'
 			const CORRECT_PASSWORD = '123456'
 
@@ -176,7 +227,7 @@
 					emailField.classList.add('error')
 					isError = true
 				}
-
+				// СДЕЛАЙ ТУТ IF СУЩЕСТВУЕТ МАЙЛ И ПАРОЛЬ
 				if (password !== CORRECT_PASSWORD) {
 					passwordField.classList.add('error')
 					isError = true
