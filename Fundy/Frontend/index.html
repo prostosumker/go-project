@@ -345,7 +345,7 @@
 				<p style="font-size: 18px; margin-bottom: 10px">Введите сумму:</p>
 				<input
 					type="text"
-					id="amountInput"
+					id="amountInputExp"
 					placeholder="₽0.00"
 					style="
 						width: 100%;
@@ -358,13 +358,13 @@
 				/>
 				<!-- Выпадающий список категорий -->
 				<label
-					for="categorySelect"
+					for="categorySelectExp"
 					style="font-size: 16px; margin-bottom: 10px; display: block"
 				>
 					Категория расхода:
 				</label>
 				<select
-					id="categorySelect"
+					id="categorySelectExp"
 					style="
 						width: 100%;
 						padding: 10px;
@@ -380,11 +380,13 @@
 					<option value="mortgage">🏛️ Ипотека</option>
 					<option value="clothes">👔 Одежда</option>
 					<option value="beauty">✨ Красота</option>
+					<option value="investment">💸 Инвестиции</option>
 					<option value="otherExp">Другое</option>
 				</select>
 
 				<!-- Кнопка сохранения внизу -->
 				<button
+					id="saveButtonExp"
 					style="
 						width: 100%;
 						padding: 12px;
@@ -425,13 +427,13 @@
 				/>
 				<!-- Выпадающий список категорий -->
 				<label
-					for="categorySelect"
+					for="categorySelectInc"
 					style="font-size: 16px; margin-bottom: 10px; display: block"
 				>
 					Категория дохода:
 				</label>
 				<select
-					id="categorySelect"
+					id="categorySelectInc"
 					style="
 						width: 100%;
 						padding: 10px;
@@ -450,6 +452,7 @@
 
 				<!-- Кнопка сохранения внизу -->
 				<button
+					id="saveButtonInc"
 					style="
 						width: 100%;
 						padding: 12px;
@@ -470,7 +473,7 @@
 		<div class="container">
 			<div class="balance-card">
 				<h2>Общий баланс</h2>
-				<div class="balance">₽0.0</div>
+				<div id="balance" class="balance">₽0.0</div>
 				<div class="currency">RUB</div>
 			</div>
 
@@ -501,6 +504,7 @@
 	</body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 	function getToDaysMonth() {
 		let currentDate = new Date()
@@ -577,14 +581,38 @@
 		})
 	}
 
+	// Информация о доходах
+	var incDataArray = [0, 0, 0, 0, 0]
+	// Информация о расходах
+	var expDataArray = [0, 0, 0, 0, 0, 0, 0, 0]
+
 	// Данные и опции для диаграмм
 	const expData = {
-		labels: ['Категория 11', 'Категория 22', 'Категория 33', 'Категория 44'],
+		labels: [
+			'Еда',
+			'Развлечения',
+			'Ипотека',
+			'Аренда',
+			'Одежда',
+			'Красота',
+			'Инвестиции',
+			'Другое',
+		],
 		datasets: [
 			{
 				label: 'Расходы',
-				data: [1250, 1000, 750, 1100],
-				backgroundColor: ['#F42A60', '#C033F3', '#33FF70', '#FFBB33'],
+				data: expDataArray,
+				backgroundColor: [
+					'#e60049',
+					'#0bb4ff',
+					'#50e991',
+					'#e6d800',
+					'#9b19f5',
+					'#ffa300',
+					'#dc0ab4',
+					'#b3d4ff',
+					'#00bfa0',
+				],
 				borderWidth: 10,
 				hoverOffset: 10,
 			},
@@ -592,12 +620,25 @@
 	}
 
 	const incData = {
-		labels: ['Категория 1', 'Категория 2', 'Категория 3'],
+		labels: [
+			'Стипендия',
+			'Зарплата',
+			'Дивиденды',
+			'Проценты по депозиту',
+			'Другое',
+		],
 		datasets: [
 			{
 				label: 'Доходы',
-				data: [1250, 1000, 750],
-				backgroundColor: ['#33FF70', '#33A0FF', '#FFBB33'],
+				data: incDataArray,
+				backgroundColor: [
+					'#33FF70',
+					'#33A0FF',
+					'#bc13fe',
+					'#f80000',
+					'#ffea19',
+					'#7df9ff',
+				],
 				borderWidth: 10,
 				hoverOffset: 10,
 			},
@@ -687,9 +728,9 @@
 	}
 
 	//Рубли в модальном окне расходов
-	const amountInput = document.getElementById('amountInput')
+	const amountInputExp = document.getElementById('amountInputExp')
 
-	amountInput.addEventListener('input', function (e) {
+	amountInputExp.addEventListener('input', function (e) {
 		// Убираем всё, кроме цифр и точки
 		let value = e.target.value.replace(/[^\d.]/g, '')
 
@@ -698,9 +739,9 @@
 	})
 
 	// Добавляем ₽ по умолчанию при фокусе
-	amountInput.addEventListener('focus', function () {
-		if (!amountInput.value.startsWith('₽')) {
-			amountInput.value = '₽'
+	amountInputExp.addEventListener('focus', function () {
+		if (!amountInputExp.value.startsWith('₽')) {
+			amountInputExp.value = '₽'
 		}
 	})
 
@@ -756,5 +797,274 @@
 			modalExp.style.display = 'none'
 			modalInc.style.display = 'none'
 		}
+	}
+
+	//Кнопка сохранения нового дохода
+	var saveButtonInc = document.getElementById('saveButtonInc')
+
+	saveButtonInc.onclick = function () {
+		var amountInputIncPlace = document.getElementById('amountInputInc')
+		var categorySelectInc = document.getElementById('categorySelectInc')
+
+		var valueCategoryInc = categorySelectInc.value
+		var inputValueInc = amountInputIncPlace.value
+		if ((inputValueInc == '') | (parseFloat(inputValueInc.slice(1)) < 0.0001)) {
+			alert('Вы не ввели ничего!')
+		} else {
+			switch (valueCategoryInc) {
+				case 'scholarship':
+					incDataArray[0] = incDataArray[0] + parseFloat(inputValueInc.slice(1))
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'paycheck':
+					incDataArray[1] = incDataArray[1] + parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'dividendts':
+					incDataArray[2] = incDataArray[2] + parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'deposit':
+					incDataArray[3] = incDataArray[3] + parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'otherInc':
+					incDataArray[4] = incDataArray[4] + parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+			}
+		}
+	}
+
+	//Кнопка сохранения нового расхода
+	var saveButtonExp = document.getElementById('saveButtonExp')
+
+	saveButtonExp.onclick = function () {
+		var amountInputExpPlace = document.getElementById('amountInputExp')
+		var categorySelectExp = document.getElementById('categorySelectExp')
+
+		var valueCategoryExp = categorySelectExp.value
+		var inputValueExp = amountInputExpPlace.value
+		if ((inputValueExp == '') | (parseFloat(inputValueExp.slice(1)) < 0.0001)) {
+			alert('Вы не ввели ничего!')
+		} else {
+			switch (valueCategoryExp) {
+				case 'food':
+					expDataArray[0] = expDataArray[0] + parseFloat(inputValueExp.slice(1))
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'entertainment':
+					expDataArray[1] = expDataArray[1] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'rent':
+					expDataArray[2] = expDataArray[2] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'mortgage':
+					expDataArray[3] = expDataArray[3] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'clothes':
+					expDataArray[4] = expDataArray[4] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'beauty':
+					expDataArray[5] = expDataArray[5] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'investment':
+					expDataArray[6] = expDataArray[6] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'otherExp':
+					expDataArray[7] = expDataArray[7] + parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalExp.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+			}
+		}
+	}
+
+	function getIncSum(incSum, expSum) {
+		return incDataArray.reduce((partialSum, a) => partialSum + a, 0)
+	}
+
+	function getExpSum(incSum, expSum) {
+		return expDataArray.reduce((partialSum, a) => partialSum + a, 0)
+	}
+
+	function updateBalance(incSum, expSum) {
+		var sumTextHolder = document.getElementById('balance')
+		var balanceResult = incSum - expSum
+		sumTextHolder.textContent = '₽' + balanceResult
 	}
 </script>
