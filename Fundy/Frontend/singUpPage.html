@@ -160,9 +160,33 @@
 		</div>
 
 		<script>
+			// Функция для проверки авторизации
+			async function checkAuth() {
+            try {
+                const response = await fetch('/auth', {
+                  method: 'GET',
+                  credentials: 'include', // Обязательно указываем для отправки cookies
+                });
+
+                if (response.ok) {
+                  const data = await response.json();
+                  console.log('User is authenticated:', data.username);
+                  // Логика для авторизованного пользователя
+                  document.getElementById('status').innerText = `Hello, ${data.username}!`;
+                } else {
+                  console.log('User is not authenticated');
+                  // Логика для неавторизованного пользователя
+				  window.location.href = '/singInPage';
+                  document.getElementById('status').innerText = 'Please log in.';
+                }
+              } catch (err) {
+                console.error('Error during authentication check:', err);
+              }
+            }
+			// Проверка авторизации при загрузке страницы
+			document.addEventListener('DOMContentLoaded', checkAuth);
 			const CORRECT_EMAIL = 'email@gmail.com'
 			const CORRECT_PASSWORD = '123456'
-			
 			function checkLogin() {
 				const emailField = document.getElementById('email')
 				const passwordFieldNew = document.getElementById('passwordNew')
