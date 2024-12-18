@@ -70,10 +70,10 @@ func handleGenerateToken(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
-	var username = creds.Username
+	/*var username = creds.Username
 	var password = creds.Password
 	if checkLogPass(creds.Username) {
-		fmt.Println("Пользователь с таким username уже существует.")
+		http.Error(w, "Пользователь с таким именем уже существует.", http.StatusInternalServerError)
 	} else {
 		// Если пользователя нет, вставляем данные
 		insertQuery := `INSERT INTO Users (username, password) VALUES ($1, $2) RETURNING user_id`
@@ -84,7 +84,7 @@ func handleGenerateToken(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Printf("Новый пользователь добавлен с ID: %d\n", userID)
 	}
-
+	*/
 	token, err := generateToken(creds.Username)
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
@@ -104,7 +104,7 @@ func handleGenerateToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/static/index.html", http.StatusFound)
+	http.Redirect(w, r, "/signInPage.html", http.StatusFound)
 }
 func checkAuth(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("auth_token")
@@ -114,8 +114,17 @@ func checkAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenStr := cookie.Value
 	fmt.Print(tokenStr)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    tokenStr,
+		Expires:  time.Now().Add(5 * time.Minute),
+		HttpOnly: true,
+		Secure:   false, // Используйте true, если работаете с HTTPS
+		Path:     "/",
+	})
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"username": "prostosumker"})
+	json.NewEncoder(w).Encode(map[string]string{"token": tokenStr})
 }
 
 func authorizedFunc(w http.ResponseWriter, r *http.Request) {
@@ -169,15 +178,17 @@ func main() {
 		}
 		fmt.Println(name)
 	}
-	// Статическая раздача файлов
-	fs := http.FileServer(http.Dir("./static"))
-	r.PathPrefix("/static").Handler(http.StripPrefix("/static", fs))
-	r.HandleFunc("/auth", checkAuth)
-	// Обработчик для генерации токенов
 	r.HandleFunc("/generate-token", handleGenerateToken)
+
+	r.HandleFunc("/auth", checkAuth)
+	// Статическая раздача файлов
+	fs := http.FileServer(http.Dir("./../Frontend/"))
+	r.PathPrefix("/").Handler(http.StripPrefix("/", fs))
 	r.HandleFunc("/", handleRoot)
-	r.HandleFunc("/static/welcome.html", authorizedFunc)
+	r.HandleFunc("/welcome.html", authorizedFunc)
 	r.HandleFunc("/sign_up", signupFunc)
+	// Обработчик для генерации токенов
+
 	fmt.Println("Server is running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 
