@@ -160,6 +160,10 @@
 		</div>
 
 		<script>
+			function validateEmail(email) {
+  		const regex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|yandex\.ru|mail\.ru|ystu\.ru)$/;
+  		return regex.test(email);
+			}
 			// Функция для проверки авторизации
 			async function checkAuth() {
             try {
@@ -206,6 +210,7 @@
 					passwordFieldCopy.classList.add('error')
 					isError = true
 				} else {
+					if (validateEmail(document.getElementById('email').value)){
 					//Отправка данных 
 					var username = emailField.value
 					var password = passwordFieldNew.value
@@ -216,11 +221,15 @@
                 			},
                 	body: JSON.stringify({ username ,  password }),
             		});
-					if (response.ok) {
+						if (response.ok) {
 						window.location.href = '/index.html';
-            		} else {
-									emailField.classList.add('error')
-           			}
+            		} 
+						else {
+								emailField.classList.add('error')
+           	}	
+						}else{
+							document.getElementById('email').classList.add('error')
+						}
 				}
 			}
 		</script>
