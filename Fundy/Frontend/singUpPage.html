@@ -146,7 +146,7 @@
 		<div class="login-container">
 			<h2>Регистрация</h2>
 			<form id="loginForm">
-				<label for="email">Email</label>
+				<label for="email">Email/Login</label>
 				<input type="text" id="email" placeholder="email@gmail.com" />
 
 				<label for="password">Пароль</label>
@@ -212,6 +212,7 @@
 				} else {
 					if (validateEmail(document.getElementById('email').value)){
 					//Отправка данных 
+					
 					var username = emailField.value
 					var password = passwordFieldNew.value
 					const response = await fetch("http://localhost:8181/sign_up", {
