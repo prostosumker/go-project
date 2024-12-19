@@ -185,12 +185,12 @@
                 console.error('Error during authentication check:', err);
               }
             }
-
+						document.addEventListener('DOMContentLoaded', checkAuth);
 			// Проверка авторизации при загрузке страницы
-			document.addEventListener('DOMContentLoaded', checkAuth);
 			document.getElementById("loginForm").addEventListener("submit", async (event) => {
+				    if (validateEmail(document.getElementById('email').value)){
             event.preventDefault();
-			console.log("Форма отправлена!");
+						console.log("Форма отправлена!");
             const username = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const response = await fetch("http://localhost:8181/generate-token", {
@@ -205,20 +205,20 @@
                 const data = await response.json();
                 window.location.href = '/index.html';
             } else {
-				const emailField = document.getElementById('email')
+						const emailField = document.getElementById('email')
         		const passwordField = document.getElementById('password')
-				alert("e1123rssd123")
                 emailField.classList.add('error')
-				passwordField.classList.add('error')
-				isError = true
+								passwordField.classList.add('error')
+								isError = true
             }
+					}else{
+							event.preventDefault();
+							alert('123')
+							document.getElementById('email').classList.add('error')
+					}
         });
-        document.getElementById("authForm").addEventListener("Sign_Up", async (event) => {
-            event.preventDefault();
-            window.location.href = '/sign_up.html';
-            
-            }
-        );
+
+			
 			const CORRECT_EMAIL = 'email@gmail.com'
 			const CORRECT_PASSWORD = '123456'
 
