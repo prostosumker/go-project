@@ -583,8 +583,59 @@
 
 	// Информация о доходах
 	var incDataArray = [0, 0, 0, 0, 0]
+	console.log("Проверка данных", incDataArray)
 	// Информация о расходах
 	var expDataArray = [0, 0, 0, 0, 0, 0, 0, 0]
+	console.log("Проверка данных", expDataArray)
+	async function downloadData() {
+		console.log("Запуск подгрузки из базы данных")
+		const response = await fetch('/downloadingData', {
+                  method: 'GET',
+                  credentials: 'include', // Обязательно указываем для отправки cookies
+                });
+		if (response.ok) {
+			console.log("Копирую полученные данные")
+			data = await response.json()
+			for (let i = 0; i < 5; i++) {
+				incDataArray[i] = data.outIncArray[i];
+			}
+			for (let i = 0; i < 8; i++) {
+				expDataArray[i] = data.outExpArray[i];
+			}
+			console.log(expDataArray)
+			console.log(incDataArray)
+			console.log(data)
+		}
+		
+	}
+
+
+	async function uploadingData() {
+		var data = {
+    			inpExpArray: [0, 0, 0, 0, 0, 0, 0, 0], // массив расходов
+    			inpIncArray: [0, 0, 0, 0, 0]          // массив доходов
+		};
+		data.inpIncArray = incDataArray;
+		data.inpExpArray = expDataArray;
+		const response = await fetch("http://localhost:8181/uploadingData", {
+                method: "POST",
+				credentials:'include',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+		if (response.ok) {
+			data = await response.json()
+			for (let i = 0; i < 5; i++) {
+				incDataArray[i] = data.outIncArray[i];
+			}
+			for (let i = 0; i < 8; i++) {
+				expDataArray[i] = data.outExpArray[i];
+			}
+		}
+		
+	}
 
 	// Данные и опции для диаграмм
 	const expData = {
@@ -897,6 +948,7 @@
 					updateBalance(getIncSum(), getExpSum())
 					break
 			}
+			uploadingData()
 		}
 	}
 
@@ -1051,9 +1103,36 @@
 					updateBalance(getIncSum(), getExpSum())
 					break
 			}
+			uploadingData()
 		}
 	}
+	// Функция для проверки авторизации
+	async function checkAuth() {
+            try {
+                const response = await fetch('/auth', {
+                  method: 'GET',
+                  credentials: 'include', // Обязательно указываем для отправки cookies
+                });
 
+                if (response.ok) {
+                  const data = await response.json();
+                  console.log('User is authenticated:', data.token);
+                  // Логика для авторизованного пользователя
+                  await downloadData()
+				  updateBalance(getIncSum(), getExpSum())
+                } else {
+                  console.log('User is not authenticated');
+                  // Логика для неавторизованного пользователя
+				  window.location.href = '/singInPage.html';
+                  
+                }
+              } catch (err) {
+                console.error('Error during authentication check:', err);
+              }
+            }
+
+			// Проверка авторизации при загрузке страницы
+	document.addEventListener('DOMContentLoaded', checkAuth);
 	function getIncSum(incSum, expSum) {
 		return incDataArray.reduce((partialSum, a) => partialSum + a, 0)
 	}
@@ -1067,4 +1146,5 @@
 		var balanceResult = incSum - expSum
 		sumTextHolder.textContent = '₽' + balanceResult
 	}
+	
 </script>
