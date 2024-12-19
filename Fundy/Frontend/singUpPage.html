@@ -137,8 +137,8 @@
 		<header class="header">
 			<div class="logo">FUNDY</div>
 			<div class="buttons">
-				<button>Вход</button>
-				<button>Регистрация</button>
+				<button id="singInBtn_">Вход</button>
+				<button id="registretionBtn">Регистрация</button>
 			</div>
 			</div>
 		</header>
@@ -146,7 +146,7 @@
 		<div class="login-container">
 			<h2>Регистрация</h2>
 			<form id="loginForm">
-				<label for="email">Email/Login</label>
+				<label for="email">Email</label>
 				<input type="text" id="email" placeholder="email@gmail.com" />
 
 				<label for="password">Пароль</label>
@@ -232,6 +232,16 @@
 							document.getElementById('email').classList.add('error')
 						}
 				}
+			}
+
+			var singInBtn_ = document.getElementById('singInBtn_')
+			var registretionBtn = document.getElementById('registretionBtn')
+
+			singInBtn_.onclick = function () {
+				window.location.href = '/singInPage.html'
+			}
+			registretionBtn.onclick = function () {
+				window.location.href = '/singUpPage.html'
 			}
 		</script>
 	</body>
