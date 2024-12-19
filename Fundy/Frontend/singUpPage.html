@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Меню входа - Fundy</title>
+		<title>Меню регистрации - Fundy</title>
 
 		<!-- Google Fonts -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -144,24 +144,22 @@
 		</header>
 
 		<div class="login-container">
-			<h2>Вход в аккаунт</h2>
+			<h2>Регистрация</h2>
 			<form id="loginForm">
 				<label for="email">Email</label>
 				<input type="text" id="email" placeholder="email@gmail.com" />
 
 				<label for="password">Пароль</label>
-				<input type="password" id="password" placeholder="••••••••" />
+				<input type="password" id="passwordNew" placeholder="••••••••" />
 
-				<button type="submit">Вход</button>
+					<label for="password">Повторите Пароль</label>
+				<input type="password" id="passwordCopy" placeholder="••••••••" />
+
+				<button type="button" onclick="checkLogin()">Зарегистрироваться</button>
 			</form>
 		</div>
+
 		<script>
-
-			function validateEmail(email) {
-  		const regex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|yandex\.ru|mail\.ru|ystu\.ru)$/;
-  		return regex.test(email);
-			}
-
 			// Функция для проверки авторизации
 			async function checkAuth() {
             try {
@@ -174,12 +172,10 @@
                   const data = await response.json();
                   console.log('User is authenticated:', data.username);
                   // Логика для авторизованного пользователя
-                  window.location.href = '/static/welcome.html';
-                  document.getElementById('status').innerText = `Hello, ${data.username}!`;
+                  window.location.href = '/index.html';
                 } else {
                   console.log('User is not authenticated');
                   // Логика для неавторизованного пользователя
-                  document.getElementById('status').innerText = 'Please log in.';
                 }
               } catch (err) {
                 console.error('Error during authentication check:', err);
@@ -188,60 +184,43 @@
 
 			// Проверка авторизации при загрузке страницы
 			document.addEventListener('DOMContentLoaded', checkAuth);
-			document.getElementById("loginForm").addEventListener("submit", async (event) => {
-            event.preventDefault();
-			console.log("Форма отправлена!");
-            const username = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const response = await fetch("http://localhost:8181/generate-token", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                window.location.href = '/index.html';
-            } else {
+			
+			async function checkLogin() {
 				const emailField = document.getElementById('email')
-        		const passwordField = document.getElementById('password')
-				alert("e1123rssd123")
-                emailField.classList.add('error')
-				passwordField.classList.add('error')
-				isError = true
-            }
-        });
-        document.getElementById("authForm").addEventListener("Sign_Up", async (event) => {
-            event.preventDefault();
-            window.location.href = '/sign_up.html';
-            
-            }
-        );
-			const CORRECT_EMAIL = 'email@gmail.com'
-			const CORRECT_PASSWORD = '123456'
-
-			function checkLogin() {
-				const emailField = document.getElementById('email')
-				const passwordField = document.getElementById('password')
-
+				const passwordFieldNew = document.getElementById('passwordNew')
+				const passwordFieldCopy = document.getElementById('passwordCopy')
+				
 				const email = emailField.value.trim()
-				const password = passwordField.value.trim()
-
+				const passwordNew = passwordFieldNew.value.trim()
+				const passwordCopy = passwordFieldCopy.value.trim()
+				
 				emailField.classList.remove('error')
-				passwordField.classList.remove('error')
+				passwordFieldNew.classList.remove('error')
+				passwordFieldCopy.classList.remove('error')
+
+				
 
 				let isError = false
-
-				if (email !== CORRECT_EMAIL) {
-					emailField.classList.add('error')
+				if (passwordNew !== passwordCopy) {
+					passwordFieldNew.classList.add('error')
+					passwordFieldCopy.classList.add('error')
 					isError = true
-				}
-				// СДЕЛАЙ ТУТ IF СУЩЕСТВУЕТ МАЙЛ И ПАРОЛЬ
-				if (password !== CORRECT_PASSWORD) {
-					passwordField.classList.add('error')
-					isError = true
+				} else {
+					//Отправка данных 
+					var username = emailField.value
+					var password = passwordFieldNew.value
+					const response = await fetch("http://localhost:8181/sign_up", {
+                		method: "POST",
+                		headers: {
+                    		"Content-Type": "application/json",
+                			},
+                	body: JSON.stringify({ username ,  password }),
+            		});
+					if (response.ok) {
+						window.location.href = '/index.html';
+            		} else {
+									emailField.classList.add('error')
+           			}
 				}
 			}
 		</script>
