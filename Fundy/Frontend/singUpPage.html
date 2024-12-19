@@ -172,11 +172,11 @@
                   const data = await response.json();
                   console.log('User is authenticated:', data.username);
                   // Логика для авторизованного пользователя
+				  window.location.href = '/index.html';
                   document.getElementById('status').innerText = `Hello, ${data.username}!`;
                 } else {
                   console.log('User is not authenticated');
                   // Логика для неавторизованного пользователя
-				  window.location.href = '/singInPage';
                   document.getElementById('status').innerText = 'Please log in.';
                 }
               } catch (err) {
