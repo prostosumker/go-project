@@ -1,5 +1,6 @@
 package main
 
+// импорт библиотек
 import (
 	"database/sql"
 	"encoding/json"
@@ -13,8 +14,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// ключ для шифрования
 var jwtKey = []byte("your_secret_key")
 
+// структуры с идентификацией в json
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -33,16 +36,17 @@ type inData struct {
 func generateToken(username string) (string, error) {
 	claims := &jwt.MapClaims{
 		"username": username,
-		"exp":      time.Now().Add(5 * time.Second).Unix(),
+		"exp":      time.Now().Add(15 * time.Minute).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
 }
 
+// получение имени пользователя из токена
 func extractUsernameFromToken(tokenString string) (string, error) {
 	// Распарсить токен
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Убедимся, что используется правильный метод подписи
+		// Проверка использования правильного метода подписи
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -53,7 +57,7 @@ func extractUsernameFromToken(tokenString string) (string, error) {
 		return "", err
 	}
 
-	// Проверить claims
+	// Проверить claims (полезная информация)
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		username, ok := claims["username"].(string)
 		if !ok {
@@ -68,13 +72,16 @@ func extractUsernameFromToken(tokenString string) (string, error) {
 // проверка введённых данных (при входе)
 func correctCreds(username string, password string) bool {
 	fmt.Println("Правильность введённых данных")
+	// подключение в базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
+	// Отключение от базы данных перед завершением функции
 	var exists bool
+	// Запрос поиска хотя бы одного пользователя с этим именем и паролем
 	checkQuery := `SELECT EXISTS (
 		SELECT 1 FROM Users WHERE username = $1 AND password = $2
 	)`
@@ -92,13 +99,16 @@ func correctCreds(username string, password string) bool {
 // проверка логина (при регистрации)
 func checkLogPass(username string) bool {
 	fmt.Println("Проверка логина и пароля")
+	// подключение в базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
+	// Отключение от базы данных перед завершением функции
 	var exists bool
+	// Запрос поиска хотя бы одного пользователя с этим именем
 	checkQuery := `SELECT EXISTS (
 		SELECT 1 FROM Users WHERE username = $1
 	)`
@@ -117,14 +127,17 @@ func checkLogPass(username string) bool {
 // INSERT или UPDATE функция для записи значений
 func updInsFunc(userdatatable string, user_idi int, typo string, amount int) {
 	var existingAmount float64
+	// подключение в базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
+	// Отключение от базы данных перед завершением функции
 	switch userdatatable {
 	case "userdataexp":
+		// начинаем транзакцию
 		tx, err := db.Begin()
 		if err != nil {
 			log.Fatal(err)
@@ -154,6 +167,7 @@ func updInsFunc(userdatatable string, user_idi int, typo string, amount int) {
 			log.Fatal(err)
 		}
 	case "userdatainc":
+		// начинаем транзакцию
 		tx, err := db.Begin()
 		if err != nil {
 			log.Fatal(err)
@@ -199,12 +213,14 @@ func handleGenerateToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+	// подключение в базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
+	// закрытие базы данных перед завершением функции
 	var username = creds.Username
 	var password = creds.Password
 	fmt.Println(username)
@@ -215,16 +231,18 @@ func handleGenerateToken(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error generating token", http.StatusInternalServerError)
 			return
 		}
+		// добавление куки файла в ответ функции
 		http.SetCookie(w, &http.Cookie{
-			Name:     "auth_token",
-			Value:    token,
-			Expires:  time.Now().Add(15 * time.Second),
-			HttpOnly: true,
-			Secure:   false, // Используйте true, если работаете с HTTPS
-			Path:     "/",
+			Name:     "auth_token",                     // Имя cookie, которое будет использоваться клиентом.
+			Value:    token,                            // Значение cookie, в данном случае токен аутентификации.
+			Expires:  time.Now().Add(15 * time.Minute), // Дата и время, когда cookie станет недействительной.
+			HttpOnly: true,                             // Cookie доступна только серверу.
+			Secure:   false,                            // Используйте true, если работаете через HTTPS, чтобы передача cookie была защищенной.
+			Path:     "/",                              // Указывает область действия cookie, доступно для всех путей на сервере.
 		})
 
 		w.Header().Set("Content-Type", "application/json")
+		// отправка данных в сайт через ResponseWriting
 		json.NewEncoder(w).Encode(map[string]string{"token": token})
 	} else {
 		fmt.Println("Нерпавильные данные")
@@ -240,6 +258,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 
 // проверка jwt токена авторизации
 func checkAuth(w http.ResponseWriter, r *http.Request) {
+	// получение конкретного куки файла с токеном аутентификации
 	cookie, err := r.Cookie("auth_token")
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -247,13 +266,14 @@ func checkAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenStr := cookie.Value
 	fmt.Print(tokenStr)
+	// добавление куки файла в ответ функции
 	http.SetCookie(w, &http.Cookie{
-		Name:     "auth_token",
-		Value:    tokenStr,
-		Expires:  time.Now().Add(15 * time.Second),
-		HttpOnly: true,
-		Secure:   false, // Используйте true, если работаете с HTTPS
-		Path:     "/",
+		Name:     "auth_token",                     // Имя cookie, которое будет использоваться клиентом.
+		Value:    tokenStr,                         // Значение cookie, в данном случае токен аутентификации.
+		Expires:  time.Now().Add(15 * time.Minute), // Дата и время, когда cookie станет недействительной.
+		HttpOnly: true,                             // Cookie доступна только серверу.
+		Secure:   false,                            // Используйте true, если работаете через HTTPS, чтобы передача cookie была защищенной.
+		Path:     "/",                              // Указывает область действия cookie, доступно для всех путей на сервере.
 	})
 
 	w.Header().Set("Content-Type", "application/json")
@@ -266,10 +286,12 @@ func downloadingData(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
+	// создание структуры со слайсами, каждому индексу соответствует определенный вид расходов/доходов
 	var outputData = outData{
 		ExpArray: make([]int, 8),
 		IncArray: make([]int, 5),
 	}
+	// получение конкретного куки файла с токеном аутентификации
 	cookie, err := r.Cookie("auth_token")
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -282,6 +304,7 @@ func downloadingData(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка обработки токена", http.StatusUnauthorized)
 		return
 	}
+	// подключение в базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -355,13 +378,14 @@ func downloadingData(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	rowss.Close()
+	// добавление куки файла в ответ функции
 	http.SetCookie(w, &http.Cookie{
-		Name:     "auth_token",
-		Value:    tokenStr,
-		Expires:  time.Now().Add(15 * time.Second),
-		HttpOnly: true,
-		Secure:   false, // Используйте true, если работаете с HTTPS
-		Path:     "/",
+		Name:     "auth_token",                     // Имя cookie, которое будет использоваться клиентом.
+		Value:    tokenStr,                         // Значение cookie, в данном случае токен аутентификации.
+		Expires:  time.Now().Add(15 * time.Minute), // Дата и время, когда cookie станет недействительной.
+		HttpOnly: true,                             // Cookie доступна только серверу.
+		Secure:   false,                            // true, если работа через HTTPS, чтобы передача cookie была защищенной.
+		Path:     "/",                              // Указывает область действия cookie, доступно для всех путей на сервере.
 	})
 	fmt.Println(outputData)
 	jsonData, err := json.Marshal(outputData)
@@ -402,6 +426,7 @@ func uploadingData(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка обработки токена", http.StatusUnauthorized)
 		return
 	}
+	// подключение к базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -468,6 +493,7 @@ func uploadingData(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	// более детальный вывод данных на сайт и вывод в консоль
 	fmt.Println(inputData)
 	jsonData, err := json.Marshal(inputData)
 	if err != nil {
@@ -476,11 +502,6 @@ func uploadingData(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(string(jsonData)) // Выводим JSON перед отправкой
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
-}
-
-// Функция работы с авторизованным пользователем (в разработке)
-func authorizedFunc(w http.ResponseWriter, r *http.Request) {
-
 }
 
 // Функция регистрации пользователя
@@ -495,12 +516,14 @@ func signupFunc(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+	// подключение к базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
+	// закрытие базы данных после всего в функции
 	var username = creds.Username
 	var password = creds.Password
 	fmt.Println(username)
@@ -523,13 +546,14 @@ func signupFunc(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error generating token", http.StatusInternalServerError)
 			return
 		}
+		// добавление куки файла в ответ функции
 		http.SetCookie(w, &http.Cookie{
-			Name:     "auth_token",
-			Value:    token,
-			Expires:  time.Now().Add(15 * time.Second),
-			HttpOnly: true,
-			Secure:   false, // Используйте true, если работаете с HTTPS
-			Path:     "/",
+			Name:     "auth_token",                     // Имя cookie, которое будет использоваться клиентом.
+			Value:    token,                            // Значение cookie, в данном случае токен аутентификации.
+			Expires:  time.Now().Add(15 * time.Minute), // Дата и время, когда cookie станет недействительной.
+			HttpOnly: true,                             // Cookie доступна только серверу.
+			Secure:   false,                            // Используйте true, если работаете через HTTPS, чтобы передача cookie была защищенной.
+			Path:     "/",                              // Указывает область действия cookie, доступно для всех путей на сервере.
 		})
 
 		w.Header().Set("Content-Type", "application/json")
@@ -540,14 +564,16 @@ func signupFunc(w http.ResponseWriter, r *http.Request) {
 
 // Основная функция
 func main() {
+	// создание маршрутов
 	r := mux.NewRouter()
+	// Подключение к базе данных
 	connStr := "user=postgres password=1234 dbname=studydb sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.Close()
-
+	// Отключение от базы данных перед завершением функции
 	// Проверка соединения
 	err = db.Ping()
 	if err != nil {
@@ -556,11 +582,12 @@ func main() {
 
 	fmt.Println("Подключение к PostgreSQL успешно!")
 
-	// На всякий случай спрашиваем все логины зарегистрированных пользователей
+	// На всякий случай спрашиваем все логины зарегистрированных пользователей в консоль
 	rows, err := db.Query("SELECT username FROM public.users")
 	if err != nil {
 		log.Fatalf("Ошибка выполнения SELECT: %v", err)
 	}
+	// закрытие запроса перед окончанием функции
 	defer rows.Close()
 	fmt.Println("Список имён:")
 	for rows.Next() {
@@ -572,12 +599,11 @@ func main() {
 	}
 	//различные функции, вызываемые с помощью javascript
 	r.HandleFunc("/generate-token", handleGenerateToken)
-	r.HandleFunc("/welcome.html", authorizedFunc)
 	r.HandleFunc("/sign_up", signupFunc)
 	r.HandleFunc("/auth", checkAuth)
 	r.HandleFunc("/downloadingData", downloadingData)
 	r.HandleFunc("/uploadingData", uploadingData)
-	// Статическая раздача файлов
+	// Статическая раздача файлов, запуск файлового сервера
 	fs := http.FileServer(http.Dir("./../Frontend/"))
 	r.PathPrefix("/").Handler(http.StripPrefix("/", fs))
 	r.HandleFunc("/", handleRoot)
