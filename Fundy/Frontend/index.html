@@ -228,6 +228,14 @@
 				padding-bottom: 50px;
 			}
 
+			.buttons .edit {
+				background: linear-gradient(90deg, #059e12, #538b0a);
+				color: #fff;
+				padding-left: 100px;
+				padding-right: 100px;
+				padding-top: 50px;
+				padding-bottom: 50px;
+			}
 			.buttons .income {
 				background: linear-gradient(90deg, #004d40, #00e676);
 				color: #fff;
@@ -277,6 +285,18 @@
 				cursor: pointer;
 			}
 
+			.modalEdit {
+				display: none;
+				position: fixed;
+				z-index: 1;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				overflow: auto;
+				background-color: rgb(0, 0, 0);
+				background-color: rgba(0, 0, 0, 0.295);
+			}
 			.modalInc {
 				display: none;
 				position: fixed;
@@ -295,6 +315,28 @@
 				padding: 20px;
 				border: 1px solid #888;
 				width: 80%;
+			}
+			.modal-contentEdit {
+				background-color: #fefefe;
+				margin: 15% auto;
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%;
+			}
+			.closeEdit {
+				background: none;
+				color: inherit;
+				border: none;
+				padding: 0;
+				font: inherit;
+				cursor: pointer;
+				outline: inherit;
+				color: #aaa;
+				float: right;
+				font-size: 28px;
+				font-weight: bold;
+				background-color: #88888800;
+				border-color: white;
 			}
 			.closeInc {
 				background: none;
@@ -317,6 +359,12 @@
 				text-decoration: none;
 				cursor: pointer;
 			}
+			.closeEdit:hover,
+			.closeEdit:focus {
+				color: black;
+				text-decoration: none;
+				cursor: pointer;
+			}
 			.container {
 				font-family: 'Arial';
 			}
@@ -334,6 +382,99 @@
 				/>
 			</div>
 		</header>
+
+		<div id="myModalEdit" class="modalEdit">
+			<!-- Модальное содержание -->
+			<div class="modal-contentEdit">
+				<!-- Кнопка закрытия -->
+				<button class="closeEdit" id="closeEdit">&times;</button>
+
+				<!-- Ввод суммы -->
+				<p style="font-size: 18px; margin-bottom: 10px">
+					Введите изменённую сумму:
+				</p>
+				<input
+					type="text"
+					id="amountInputEdit"
+					placeholder="₽0.00"
+					style="
+						width: 100%;
+						padding: 10px;
+						border: 1px solid #ddd;
+						border-radius: 5px;
+						font-size: 16px;
+						box-sizing: border-box;
+					"
+				/>
+				<!-- Выпадающий список категорий -->
+				<label
+					for="categorySelectEdit"
+					style="font-size: 16px; margin-bottom: 10px; display: block"
+				>
+					Категория расходов/доходов:
+				</label>
+				<select
+					id="categorySelectEdit"
+					style="
+						width: 100%;
+						padding: 10px;
+						margin-bottom: 20px;
+						border: 1px solid #ddd;
+						border-radius: 5px;
+						font-size: 14px;
+					"
+				>
+					<option value="food">🍕Еда</option>
+					<option value="entertainment">🎉 Развлечения</option>
+					<option value="rent">🏠 Аренда</option>
+					<option value="mortgage">🏛️ Ипотека</option>
+					<option value="clothes">👔 Одежда</option>
+					<option value="beauty">✨ Красота</option>
+					<option value="investment">💸 Инвестиции</option>
+					<option value="otherExp">Другое (траты)</option>
+					<option value="scholarship">🎓Стипендия</option>
+					<option value="paycheck">💵 Зар. плата</option>
+					<option value="dividendts">📈 Дивиденды</option>
+					<option value="deposit">💳 Проценты по депозиту</option>
+					<option value="otherInc">Другое (доходы)</option>
+				</select>
+
+				<!-- Кнопка сохранения внизу -->
+				<button
+					id="saveButtonEdit"
+					style="
+						width: 100%;
+						padding: 12px;
+						background-color: #4caf50;
+						color: white;
+						border: none;
+						border-radius: 5px;
+						font-weight: bold;
+						font-size: 16px;
+						cursor: pointer;
+					"
+				>
+					Сохранить
+				</button>
+				<button
+					id="deleteButtonEdit"
+					style="
+						width: 100%;
+						padding: 12px;
+						background-color: #6e0000;
+						color: white;
+						border: none;
+						border-radius: 5px;
+						font-weight: bold;
+						font-size: 16px;
+						cursor: pointer;
+						margin-top: 5px;
+					"
+				>
+					Удалить
+				</button>
+			</div>
+		</div>
 
 		<div id="myModalExp" class="modalExp">
 			<!-- Модальное содержание -->
@@ -499,6 +640,7 @@
 			<div class="buttons">
 				<button id="myBtnExp" class="expense">+ Трата</button>
 				<button id="myBtnInc" class="income">+ Доход</button>
+				<button id="myBtnEdit" class="edit">Редактировать</button>
 			</div>
 		</div>
 	</body>
@@ -583,58 +725,55 @@
 
 	// Информация о доходах
 	var incDataArray = [0, 0, 0, 0, 0]
-	console.log("Проверка данных", incDataArray)
+	console.log('Проверка данных', incDataArray)
 	// Информация о расходах
 	var expDataArray = [0, 0, 0, 0, 0, 0, 0, 0]
-	console.log("Проверка данных", expDataArray)
+	console.log('Проверка данных', expDataArray)
 	async function downloadData() {
-		console.log("Запуск подгрузки из базы данных")
+		console.log('Запуск подгрузки из базы данных')
 		const response = await fetch('/downloadingData', {
-                  method: 'GET',
-                  credentials: 'include', // Обязательно указываем для отправки cookies
-                });
+			method: 'GET',
+			credentials: 'include', // Обязательно указываем для отправки cookies
+		})
 		if (response.ok) {
-			console.log("Копирую полученные данные")
+			console.log('Копирую полученные данные')
 			data = await response.json()
 			for (let i = 0; i < 5; i++) {
-				incDataArray[i] = data.outIncArray[i];
+				incDataArray[i] = data.outIncArray[i]
 			}
 			for (let i = 0; i < 8; i++) {
-				expDataArray[i] = data.outExpArray[i];
+				expDataArray[i] = data.outExpArray[i]
 			}
 			console.log(expDataArray)
 			console.log(incDataArray)
 			console.log(data)
 		}
-		
 	}
-
 
 	async function uploadingData() {
 		var data = {
-    			inpExpArray: [0, 0, 0, 0, 0, 0, 0, 0], // массив расходов
-    			inpIncArray: [0, 0, 0, 0, 0]          // массив доходов
-		};
-		data.inpIncArray = incDataArray;
-		data.inpExpArray = expDataArray;
-		const response = await fetch("http://localhost:8181/uploadingData", {
-                method: "POST",
-				credentials:'include',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
+			inpExpArray: [0, 0, 0, 0, 0, 0, 0, 0], // массив расходов
+			inpIncArray: [0, 0, 0, 0, 0], // массив доходов
+		}
+		data.inpIncArray = incDataArray
+		data.inpExpArray = expDataArray
+		const response = await fetch('http://localhost:8181/uploadingData', {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		})
 		if (response.ok) {
 			data = await response.json()
 			for (let i = 0; i < 5; i++) {
-				incDataArray[i] = data.outIncArray[i];
+				incDataArray[i] = data.outIncArray[i]
 			}
 			for (let i = 0; i < 8; i++) {
-				expDataArray[i] = data.outExpArray[i];
+				expDataArray[i] = data.outExpArray[i]
 			}
 		}
-		
 	}
 
 	// Данные и опции для диаграмм
@@ -814,6 +953,516 @@
 		}
 	})
 
+	//Рубли в модальном окне доходов
+	const amountInputEdit = document.getElementById('amountInputEdit')
+
+	amountInputEdit.addEventListener('input', function (e) {
+		// Убираем всё, кроме цифр и точки
+		let value = e.target.value.replace(/[^\d.]/g, '')
+
+		// Добавляем ₽ в начало текста
+		e.target.value = value ? `₽${value}` : ''
+	})
+
+	// Добавляем ₽ по умолчанию при фокусе
+	amountInputEdit.addEventListener('focus', function () {
+		if (!amountInputEdit.value.startsWith('₽')) {
+			amountInputEdit.value = '₽'
+		}
+	})
+	// Код для EDIT кнопки
+	// Получить модальный
+	var modalEdit = document.getElementById('myModalEdit')
+	// Получить кнопку, которая открывает модальный
+	var btnEdit = document.getElementById('myBtnEdit')
+	// Получить элемент <span>, который закрывает модальный
+	var spanEdit = document.getElementById('closeEdit')
+	// Когда пользователь нажимает на кнопку, открыть модальный
+	btnEdit.onclick = function () {
+		modalEdit.style.display = 'block'
+	}
+	// Когда пользователь нажимает на <span> (x), закрыть модальное окно
+	spanEdit.onclick = function () {
+		modalEdit.style.display = 'none'
+	}
+
+	saveButtonEdit.onclick = function () {
+		var amountInputEditPlace = document.getElementById('amountInputEdit')
+		var categorySelectEdit = document.getElementById('categorySelectEdit')
+
+		var valueCategoryEdit = categorySelectEdit.value
+		var inputValueEdit = amountInputEditPlace.value
+		if (
+			(inputValueEdit == '') |
+			(parseFloat(inputValueEdit.slice(1)) < 0.0001)
+		) {
+			alert('Вы не ввели ничего!')
+		} else {
+			switch (valueCategoryEdit) {
+				case 'scholarship':
+					incDataArray[0] = parseFloat(inputValueInc.slice(1))
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'paycheck':
+					incDataArray[1] = parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'dividendts':
+					incDataArray[2] = parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'deposit':
+					incDataArray[3] = parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'otherInc':
+					incDataArray[4] = parseFloat(inputValueInc.slice(1))
+					amountInputIncPlace.value = ''
+					modalInc.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'food':
+					expDataArray[0] = parseFloat(inputValueExp.slice(1))
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'entertainment':
+					expDataArray[1] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'rent':
+					expDataArray[2] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'mortgage':
+					expDataArray[3] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'clothes':
+					expDataArray[4] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'beauty':
+					expDataArray[5] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'investment':
+					expDataArray[6] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'otherExp':
+					expDataArray[7] = parseFloat(inputValueExp.slice(1))
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+			}
+			//uploadingData()
+		}
+	}
+
+	deleteButtonEdit.onclick = function () {
+		var amountInputEditPlace = document.getElementById('amountInputEdit')
+		var categorySelectEdit = document.getElementById('categorySelectEdit')
+
+		var valueCategoryEdit = categorySelectEdit.value
+		var inputValueEdit = amountInputEditPlace.value
+		if (false) {
+			alert('Вы не ввели ничего!')
+		} else {
+			switch (valueCategoryEdit) {
+				case 'scholarship':
+					incDataArray[0] = 0
+					modalEdit.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'paycheck':
+					incDataArray[1] = 0
+					amountInputIncPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'dividendts':
+					incDataArray[2] = 0
+					amountInputIncPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'deposit':
+					incDataArray[3] = 0
+					amountInputIncPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'otherInc':
+					incDataArray[4] = 0
+					amountInputIncPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartInc) {
+						reportChartInc.destroy()
+					}
+					if (canvasInc.style.display == 'block') {
+						reportChartInc = createChart(
+							canvasInc.getContext('2d'),
+							'doughnut',
+							incData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'food':
+					expDataArray[0] = 0
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'entertainment':
+					expDataArray[1] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'rent':
+					expDataArray[2] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'mortgage':
+					expDataArray[3] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'clothes':
+					expDataArray[4] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'beauty':
+					expDataArray[5] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'investment':
+					expDataArray[6] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+				case 'otherExp':
+					expDataArray[7] = 0
+					amountInputExpPlace.value = ''
+					modalEdit.style.display = 'none'
+					if (reportChartExp) {
+						reportChartExp.destroy()
+					}
+					if (canvasExp.style.display == 'block') {
+						reportChartExp = createChart(
+							canvasExp.getContext('2d'),
+							'doughnut',
+							expData,
+							chartOptions
+						)
+					}
+					updateBalance(getIncSum(), getExpSum())
+					break
+			}
+			//uploadingData()
+		}
+	}
+
+	// Когда пользователь щёлкает в любом месте за пределами модального, закрыть его
+
 	// Получить модальный
 	var modalExp = document.getElementById('myModalExp')
 	// Получить кнопку, которая открывает модальный
@@ -844,9 +1493,14 @@
 		modalInc.style.display = 'none'
 	}
 	window.onclick = function (event) {
-		if ((event.target == modalExp) | (event.target == modalInc)) {
+		if (
+			(event.target == modalExp) |
+			(event.target == modalInc) |
+			(event.target == modalEdit)
+		) {
 			modalExp.style.display = 'none'
 			modalInc.style.display = 'none'
+			modalEdit.style.display = 'none'
 		}
 	}
 
@@ -1106,33 +1760,33 @@
 			uploadingData()
 		}
 	}
+
 	// Функция для проверки авторизации
 	async function checkAuth() {
-            try {
-                const response = await fetch('/auth', {
-                  method: 'GET',
-                  credentials: 'include', // Обязательно указываем для отправки cookies
-                });
+		try {
+			const response = await fetch('/auth', {
+				method: 'GET',
+				credentials: 'include', // Обязательно указываем для отправки cookies
+			})
 
-                if (response.ok) {
-                  const data = await response.json();
-                  console.log('User is authenticated:', data.token);
-                  // Логика для авторизованного пользователя
-                  await downloadData()
-				  updateBalance(getIncSum(), getExpSum())
-                } else {
-                  console.log('User is not authenticated');
-                  // Логика для неавторизованного пользователя
-				  window.location.href = '/singInPage.html';
-                  
-                }
-              } catch (err) {
-                console.error('Error during authentication check:', err);
-              }
-            }
+			if (response.ok) {
+				const data = await response.json()
+				console.log('User is authenticated:', data.token)
+				// Логика для авторизованного пользователя
+				await downloadData()
+				updateBalance(getIncSum(), getExpSum())
+			} else {
+				console.log('User is not authenticated')
+				// Логика для неавторизованного пользователя
+				window.location.href = '/singInPage.html'
+			}
+		} catch (err) {
+			console.error('Error during authentication check:', err)
+		}
+	}
 
-			// Проверка авторизации при загрузке страницы
-	document.addEventListener('DOMContentLoaded', checkAuth);
+	// Проверка авторизации при загрузке страницы
+	document.addEventListener('DOMContentLoaded', checkAuth)
 	function getIncSum(incSum, expSum) {
 		return incDataArray.reduce((partialSum, a) => partialSum + a, 0)
 	}
@@ -1146,5 +1800,4 @@
 		var balanceResult = incSum - expSum
 		sumTextHolder.textContent = '₽' + balanceResult
 	}
-	
 </script>
